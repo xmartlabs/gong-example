@@ -1,6 +1,5 @@
 package com.xmartlabs.redditposts.data.model.service.settings
 
-import com.xmartlabs.redditposts.data.model.User
 import kotlinx.serialization.Serializable
 
 /**
