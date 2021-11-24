@@ -1,0 +1,33 @@
+package com.xmartlabs.redditposts.ui.screens.signin
+
+import androidx.lifecycle.viewModelScope
+import com.xmartlabs.redditposts.device.common.ProcessState
+import com.xmartlabs.redditposts.domain.usecase.SignInUseCase
+import com.xmartlabs.redditposts.ui.common.BaseViewModel
+
+/**
+ * Created by mirland on 25/04/20.
+ */
+class SignInScreenViewModel(
+    private val signInUseCase: SignInUseCase,
+) : BaseViewModel<SignInUiAction, SignInViewModelEvent, SignInViewState>(SignInViewState()) {
+
+    override suspend fun processAction(action: SignInUiAction) = when (action) {
+        SignInUiAction.SignIn -> signIn()
+        is SignInUiAction.ChangePassword -> setState { copy(password = action.password) }
+        is SignInUiAction.ChangeUserName -> setState { copy(userName = action.userName) }
+    }
+
+    private suspend fun signIn() {
+        viewModelScope.launchWithState { currentState ->
+            signInUseCase.invokeAsFlow(SignInUseCase.Params(currentState.userName, currentState.password))
+                .watchProcessState { state ->
+                    setState { copy(isLoading = state == ProcessState.Loading) }
+                    when (state) {
+                        is ProcessState.Failure -> sendOneShotEvent(SignInViewModelEvent.SignInError(state.exception))
+                        is ProcessState.Success -> sendOneShotEvent(SignInViewModelEvent.NavigateToDashboard)
+                    }
+                }
+        }
+    }
+}

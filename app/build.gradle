@@ -1,0 +1,149 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "kotlin-parcelize"
+    id "kotlin-kapt"
+    id "org.jetbrains.kotlin.plugin.serialization"
+    alias(libs.plugins.easyLauncher)
+}
+
+apply from: rootProject.file('scripts/versioning.gradle')
+apply from: rootProject.file('scripts/read_properties.gradle')
+
+if (getEnvVariable('KEYSTORE_FILE') != null) {
+    // Avoid Signing not ready issues in Gradle Play Publisher plugin
+    apply from: rootProject.file('scripts/snapshot_publish.gradle')
+}
+
+// TODO: Enable when the services json is added
+// apply plugin: 'com.google.gms.google-services'
+
+// TODO: Setup Crashlytics
+def CRASHLYTICS_ENABLED = false
+if (CRASHLYTICS_ENABLED) {
+    apply plugin: 'com.google.firebase.crashlytics'
+}
+
+
+android {
+    compileSdkVersion androidVersions.compileSdk
+    buildToolsVersion androidVersions.buildTools
+
+    defaultConfig {
+        applicationId "com.xmartlabs.redditposts"
+        minSdkVersion androidVersions.minSdk
+        targetSdkVersion androidVersions.targetSdk
+        versionCode 1
+        versionName ""
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+        // Used to define some constants like the share preferences's file name.
+        buildConfigField 'String', 'APP_NAME', '"RedditPostsExplorer"'
+        buildConfigField 'boolean', 'CRASHLYTICS_ENABLED', "$CRASHLYTICS_ENABLED"
+    }
+
+    buildFeatures {
+        compose true
+    }
+
+    signingConfigs {
+        release {
+            storeFile getEnvVariable('KEYSTORE_FILE') == null ? null : file(getEnvVariable('KEYSTORE_FILE'))
+            storePassword getEnvVariable('KEYSTORE_PASSWORD')
+            keyAlias getEnvVariable('KEYSTORE_KEY_ALIAS')
+            keyPassword getEnvVariable('KEYSTORE_KEY_PASSWORD')
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (getEnvVariable('KEYSTORE_FILE') != null) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            minifyEnabled getEnvVariable('MINIFY_CODE', false) as Boolean
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "env"
+    productFlavors {
+        dev {
+            buildConfigField 'String', 'API_BASE_URL', getEnvVariable('API_DEV_SERVER_URL')
+
+            dimension "env"
+            applicationIdSuffix '.dev'
+        }
+        prod {
+            buildConfigField 'String', 'API_BASE_URL', getEnvVariable('API_PROD_SERVER_URL')
+
+            dimension "env"
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE' // will not include LICENSE file
+    }
+
+    lintOptions {
+        lintConfig file("lint.xml")
+        disable "ObsoleteLintCustomCheck"
+        fatal 'StopShip'
+        warningsAsErrors true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        languageVersion = "1.5"
+        jvmTarget = '11'
+        freeCompilerArgs += [
+                "-XXLanguage:+InlineClasses",
+                "-Xallow-result-return-type",
+                "-Xopt-in=kotlin.RequiresOptIn",
+                "-Xuse-experimental=kotlin.contracts.ExperimentalContracts",
+                "-Xuse-experimental=kotlin.Experimental",
+                "-Xuse-experimental=kotlin.time.ExperimentalTime",
+                "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                "-Xuse-experimental=kotlinx.coroutines.FlowPreview",
+                "-Xuse-experimental=kotlin.ExperimentalStdlibApi",
+        ]
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion libs.versions.compose.core.get()
+    }
+}
+
+dependencies {
+    androidTestImplementation libs.bundles.androidXTest
+
+    debugImplementation libs.leakcanary
+    debugImplementation libs.bundles.networking.debug
+    debugImplementation libs.bundles.flipper
+
+    implementation libs.androidX.core.splashscreen
+    implementation libs.androidX.room.core
+    implementation libs.androidX.dataStore
+    implementation libs.coil
+    implementation libs.once
+    implementation libs.firebase.crashlytics
+    implementation libs.koin.compose
+    implementation libs.timber
+    implementation libs.store
+
+    implementation libs.bundles.accompanist
+    implementation libs.bundles.androidSwissKnife
+    implementation libs.bundles.compose
+    implementation libs.bundles.kotlin
+    implementation libs.bundles.networking.core
+
+    kapt libs.androidX.room.compiler
+
+    testImplementation libs.junit
+}

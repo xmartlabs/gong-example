@@ -1,0 +1,73 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url "https://jitpack.io" }
+    }
+    dependencies {
+        classpath libs.gp.androidGradle
+        classpath libs.gp.dependencyUpdates
+        classpath libs.gp.detekt
+        classpath libs.gp.firebaseCrashlytics
+        classpath libs.gp.googleServices
+        classpath libs.gp.kotlin.gradle
+        classpath libs.gp.kotlin.serialization
+        classpath libs.gp.snapshotPublisher
+    }
+}
+
+ext {
+    // App version
+    versionName = '0.0.1' // X.Y.Z; X = Major, Y = minor, Z = Patch level
+    name = "RedditPostsExplorer"
+    configPropertiesFile = file('config.properties') // All configurations are saved here
+    secretsPropertiesFile = file('secrets/keys.properties') // All secrets are saved here
+
+    def androidVersions = [:]
+    androidVersions.minSdk = 23
+    androidVersions.compileSdk = 31
+    androidVersions.buildTools = '31.0.0'
+    androidVersions.targetSdk = 31
+    ext.androidVersions = androidVersions
+}
+
+apply from: rootProject.file('scripts/dependency_updates.gradle')
+apply from: rootProject.file('scripts/stop_ship_check_xmls.gradle.kts')
+apply plugin: "io.gitlab.arturbosch.detekt"
+
+dependencies {
+    detektPlugins libs.detekt.formatting
+}
+
+detekt {
+    autoCorrect = true
+    config = files("$rootDir/.detekt/detekt-config.yml")
+    input = files("app/src")
+    parallel = true
+    toolVersion = libs.versions.detekt.get()
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url "https://jitpack.io" }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+task check() {
+    dependsOn("checkStopShipXmls")
+}
+
+// `./gradlew wrapper --gradle-version=[version]` uses the distribution type all
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
