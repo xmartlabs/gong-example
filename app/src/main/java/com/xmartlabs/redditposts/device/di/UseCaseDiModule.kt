@@ -7,6 +7,5 @@ import org.koin.dsl.module
  */
 object UseCaseDiModule {
     val useCases = module {
-
     }
 }

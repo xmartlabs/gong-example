@@ -25,9 +25,7 @@ object RepositoryDiModuleProvider {
         single { get<AppDatabase>().locationDao() }
     }
     val sources = module {
-
     }
     val repositories = module {
-
     }
 }
