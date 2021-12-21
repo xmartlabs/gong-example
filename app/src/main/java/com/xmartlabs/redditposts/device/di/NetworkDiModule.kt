@@ -1,12 +1,10 @@
 package com.xmartlabs.redditposts.device.di
 
 import com.xmartlabs.redditposts.Config
-import com.xmartlabs.redditposts.data.service.LocationServiceApi
 import com.xmartlabs.redditposts.data.service.NetworkLayerCreator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
-import retrofit2.Retrofit
 
 /**
  * Created by mirland on 28/04/20.
@@ -14,7 +12,6 @@ import retrofit2.Retrofit
 object NetworkDiModule {
     @Suppress("RemoveExplicitTypeArguments")
     val network = module {
-        single { get<Retrofit>().create(LocationServiceApi::class.java) }
         single<OkHttpClient.Builder> {
             val sessionInterceptors =
                 listOf<Interceptor>() // TODO: Add session interceptor and refresh token interceptor

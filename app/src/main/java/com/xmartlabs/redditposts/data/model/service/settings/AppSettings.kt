@@ -1,6 +1,5 @@
 package com.xmartlabs.redditposts.data.model.service.settings
 
-import com.xmartlabs.redditposts.data.model.User
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,5 +8,4 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AppSettings(
     val sessionToken: String? = null,
-    val sessionUser: User? = null,
 )
