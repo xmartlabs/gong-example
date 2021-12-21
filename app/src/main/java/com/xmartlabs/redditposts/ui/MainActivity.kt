@@ -14,12 +14,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.xmartlabs.redditposts.R
-import com.xmartlabs.redditposts.domain.usecase.SessionType
-import com.xmartlabs.redditposts.ui.screens.signin.SignInScreen
-import com.xmartlabs.redditposts.ui.screens.welcome.WelcomeScreen
+import com.xmartlabs.redditposts.ui.screens.mainscreen.MainScreen
 import com.xmartlabs.redditposts.ui.theme.AppTheme
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.time.Duration
@@ -28,8 +24,6 @@ class MainActivity : ComponentActivity() {
     companion object {
         private val SPLASH_ANIMATION_TIME = Duration.milliseconds(300)
     }
-
-    private val viewModel: MainActivityViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -46,33 +40,29 @@ class MainActivity : ComponentActivity() {
 
     private fun handleActivityState(splashScreenViewProvider: SplashScreenViewProvider?) {
         lifecycleScope.launch {
-            viewModel.state
-                .mapNotNull { it.sessionType }
-                .collect { sessionType ->
-                    if (splashScreenViewProvider == null) {
-                        activityContentView(sessionType)
-                    } else {
-                        // Get icon instance and start a fade out animation
-                        splashScreenViewProvider.iconView
-                            .animate()
-                            .setDuration(SPLASH_ANIMATION_TIME.inWholeMilliseconds)
-                            .alpha(0f)
-                            .withEndAction {
-                                splashScreenViewProvider.remove()
-                                activityContentView(sessionType)
-                            }.start()
-                    }
-                }
+            if (splashScreenViewProvider == null) {
+                activityContentView()
+            } else {
+                // Get icon instance and start a fade out animation
+                splashScreenViewProvider.iconView
+                    .animate()
+                    .setDuration(SPLASH_ANIMATION_TIME.inWholeMilliseconds)
+                    .alpha(0f)
+                    .withEndAction {
+                        splashScreenViewProvider.remove()
+                        activityContentView()
+                    }.start()
+            }
         }
     }
 
-    private fun activityContentView(sessionType: SessionType) {
+    private fun activityContentView() {
         // This app draws behind the system bars, so we want to handle fitting system windows
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             ProvideWindowInsets {
                 AppTheme {
-                    AppNavigationManager(sessionType)
+                    AppNavigationManager()
                 }
             }
         }
@@ -80,15 +70,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigationManager(sessionType: SessionType) {
+fun AppNavigationManager() {
     val navigationController: NavHostController = rememberNavController()
-    val startDestination = if (sessionType == SessionType.LOGGED) Screens.WELCOME else Screens.SIGN_IN
+    val startDestination = Screens.MAIN_SCREEN
     NavHost(navController = navigationController, startDestination = startDestination) {
-        composable(Screens.SIGN_IN) {
-            SignInScreen(navController = navigationController)
-        }
-        composable(Screens.WELCOME) {
-            WelcomeScreen()
+        composable(Screens.MAIN_SCREEN) {
+            MainScreen()
         }
     }
 }

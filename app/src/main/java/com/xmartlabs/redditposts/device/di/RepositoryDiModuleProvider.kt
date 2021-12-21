@@ -1,11 +1,9 @@
 package com.xmartlabs.redditposts.device.di
 
 import androidx.datastore.dataStore
-import androidx.room.Room
 import com.xmartlabs.redditposts.Config
 import com.xmartlabs.redditposts.data.model.service.settings.AppSettings
 import com.xmartlabs.redditposts.data.repository.store.datastorage.JsonDataStoreEntitySerializer
-import com.xmartlabs.redditposts.data.repository.store.db.AppDatabase
 import org.koin.dsl.module
 
 /**
@@ -18,11 +16,6 @@ object RepositoryDiModuleProvider {
                 serializer = JsonDataStoreEntitySerializer(AppSettings.serializer(), ::AppSettings)
             ).getValue(get(), this::javaClass)
         }
-        single {
-            Room.databaseBuilder(get(), AppDatabase::class.java, Config.DB_NAME)
-                .build()
-        }
-        single { get<AppDatabase>().locationDao() }
     }
     val sources = module {
     }
