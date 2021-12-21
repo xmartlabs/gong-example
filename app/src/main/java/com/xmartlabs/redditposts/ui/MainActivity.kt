@@ -17,7 +17,6 @@ import com.xmartlabs.redditposts.R
 import com.xmartlabs.redditposts.ui.screens.mainscreen.MainScreen
 import com.xmartlabs.redditposts.ui.theme.AppTheme
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.time.Duration
 
 class MainActivity : ComponentActivity() {
